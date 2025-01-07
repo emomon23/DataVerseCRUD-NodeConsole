@@ -1,0 +1,15 @@
+# Ignore .env file to keep it out of the repository
+.env
+
+# Ignore node_modules (to avoid uploading dependencies)
+node_modules/
+
+# Ignore logs and other build files
+npm-debug.log*
+yarn-error.log*
+
+# Optional: If you have a build folder
+build/
+
+# Optional: If you have other sensitive files
+*.log

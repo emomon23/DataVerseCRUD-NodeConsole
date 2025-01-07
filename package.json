@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@azure/msal-node": "^2.16.2",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "msal": "^1.4.18",
+    "qs": "^6.13.1"
+  },
+  "type": "module"
+}
