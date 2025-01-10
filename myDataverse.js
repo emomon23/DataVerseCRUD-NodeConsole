@@ -2,15 +2,15 @@ import axios from "axios";
 import * as msal from "@azure/msal-node";
 import config from "./config.js";
 
-let _httpConfig = null;
+let httpConfig = null;
 
 const dataVerseLog = (msg) => {
   //uncomment || comment out console.log to see || hide logs from myDataver calls
   console.log(msg);
 };
 
-const _authenticateWithAuzre = async () => {
-  if (_httpConfig) {
+const authenticateWithAuzre = async () => {
+  if (httpConfig) {
     return;
   }
 
@@ -29,7 +29,7 @@ const _authenticateWithAuzre = async () => {
 
   if (result && result.accessToken) {
     dataVerseLog("** Authentication success!");
-    _httpConfig = {
+    httpConfig = {
       headers: {
         Authorization: `Bearer ${result.accessToken}`,
         "Content-Type": "application/json",
@@ -40,7 +40,7 @@ const _authenticateWithAuzre = async () => {
   }
 };
 
-const _extractGuid = (valueString) => {
+const extractGuid = (valueString) => {
   const regex =
     /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/;
   const match = valueString.match(regex);
@@ -52,7 +52,7 @@ const _extractGuid = (valueString) => {
   }
 };
 
-const _mapOperatorString = (rawOperator) => {
+const mapOperatorString = (rawOperator) => {
   const lcaseOperator =
     rawOperator && rawOperator.toLowerCase ? rawOperator.toLowerCase() : "eq";
   let result = lcaseOperator;
@@ -87,7 +87,7 @@ const _mapOperatorString = (rawOperator) => {
   return result;
 };
 
-const _convertQueryFiltersToString = (filtersArray) => {
+const convertQueryFiltersToString = (filtersArray) => {
   if (!(filtersArray && filtersArray.length)) {
     return "";
   }
@@ -95,7 +95,7 @@ const _convertQueryFiltersToString = (filtersArray) => {
   let resultString = "";
   for (let i = 0; i < filtersArray.length; i++) {
     const filter = filtersArray[i];
-    const operator = _mapOperatorString(filter.operator);
+    const operator = mapOperatorString(filter.operator);
     const type = filter.type || "string";
     const filterKeys = Object.keys(filter).filter(
       (key) => key !== "type" && key !== "operator"
@@ -126,14 +126,14 @@ const _convertQueryFiltersToString = (filtersArray) => {
   return resultString;
 };
 
-const _convertFilterGroupsToString = (filterGroupsArray) => {
+const convertFilterGroupsToString = (filterGroupsArray) => {
   if (!(filterGroupsArray && filterGroupsArray.length)) {
     return "";
   }
 
   let result = "";
   for (let i = 0; i < filterGroupsArray.length; i++) {
-    let filtersToOr = _convertQueryFiltersToString(filterGroupsArray[i]);
+    let filtersToOr = convertQueryFiltersToString(filterGroupsArray[i]);
     if (filtersToOr.length) {
       result = result.length ? result + " and " : result;
       result += `(${filtersToOr})`;
@@ -148,30 +148,31 @@ const _convertFilterGroupsToString = (filterGroupsArray) => {
 };
 
 const create = async (tableName, data) => {
-  await _authenticateWithAuzre();
+  await authenticateWithAuzre();
 
   let result = null;
   const url = `${config.apiUrl}${tableName.toLowerCase()}`;
-  const response = await axios.post(url, data, _httpConfig);
+  const response = await axios.post(url, data, httpConfig);
 
   //I should be able to go right to response.data, but for some reason that value is undefined
   //and my status code is 204 (NO CONTENT), the record does get created however
-  //I'm able to extract the guid from the location value and return that as the id for the new record
+  //I'm able to extract the new record primary key (guid) from the location value and
+  // return that as the id for the new record
   if (response.headers.location) {
-    result = _extractGuid(response.headers.location);
+    result = extractGuid(response.headers.location);
   }
 
   return result;
 };
 
 const get = async (odataQueryString) => {
-  await _authenticateWithAuzre();
+  await authenticateWithAuzre();
   const url = `${config.apiUrl}${odataQueryString}`;
 
   try {
     dataVerseLog({ axiosGet: url });
 
-    return await axios.get(url, _httpConfig);
+    return await axios.get(url, httpConfig);
   } catch (error) {
     console.error(
       "Error querying Dataverse:",
@@ -245,7 +246,7 @@ const select = (selectFieldList) => {
       }
 
       if (!this.id) {
-        const filterString = _convertFilterGroupsToString(this.filtersToAND);
+        const filterString = convertFilterGroupsToString(this.filtersToAND);
         if (filterString && filterString.length) {
           queryString += requiresAmp ? "&" : "";
           queryString += filterString;
@@ -279,40 +280,22 @@ const select = (selectFieldList) => {
   };
 };
 
-const update = async (
-  tableName,
-  data,
-  recordId,
-  commaSeperatedListOfFieldsToReturn = null
-) => {
-  await _authenticateWithAuzre();
+const update = async (tableName, data, recordId) => {
+  await authenticateWithAuzre();
 
   //eg. https:<org>.api.crm.dynamics.com/data/api/v9.2/accounts(0000-0000-0000-0001)
   const patchUrl = `${config.apiUrl}${tableName.toLowerCase()}(${recordId})`;
-  const response = await axios.patch(patchUrl, data, _httpConfig);
-
-  const statusOk = response.status === 200 || response.status === 204;
-  const userWantsAQuery =
-    commaSeperatedListOfFieldsToReturn &&
-    commaSeperatedListOfFieldsToReturn.length;
-
-  if (statusOk && userWantsAQuery) {
-    return await select(commaSeperatedListOfFieldsToReturn)
-      .from(tableName)
-      .whereIdEquals(recordId)
-      .execute();
-  } else {
-    return {};
-  }
+  const response = await axios.patch(patchUrl, data, httpConfig);
+  return response.status;
 };
 
 const deleteRow = async (tableName, recordId) => {
-  await _authenticateWithAuzre();
+  await authenticateWithAuzre();
 
   const deleteUrl = `${config.apiUrl}${tableName.toLowerCase()}(${recordId})`;
 
   dataVerseLog(`calling axios.delete(${deleteUrl})`);
-  const response = await axios.delete(deleteUrl, _httpConfig);
+  const response = await axios.delete(deleteUrl, httpConfig);
 
   dataVerseLog(`Delete Status: ${response.status}`);
   return response.status;

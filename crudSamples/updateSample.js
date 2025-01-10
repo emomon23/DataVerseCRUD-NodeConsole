@@ -15,17 +15,14 @@ const execute = async (primaryKeys) => {
     name: "TonkaSaurus GRRRR RahH",
   };
 
-  const pleaseReturnTheseFieldsUponUpdate = "accountid,name";
-
-  const updatedData = await myDataverse.update(
+  const updateStatus = await myDataverse.update(
     "accounts",
     accountPatch,
-    primaryKeys.newAccountId,
-    pleaseReturnTheseFieldsUponUpdate
+    primaryKeys.newAccountId
   );
 
-  console.log("** myDataVerse.updateCalled");
-  console.log({ updatedData });
+  console.log("** myDataVerse.updateCalled (look for 200 or 204 - NO CONTENT");
+  console.log({ updateStatus });
 };
 
 export default {
