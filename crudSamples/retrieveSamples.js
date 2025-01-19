@@ -23,7 +23,7 @@ export default {
     console.log({ accountData });
 
     //**********************************************************************
-    //************** SELECT * FROM ACCOUNT  *****************
+    //************** SELECT * FROM CONTACT  *****************
     query = myDataverse.select("*").from("contacts");
 
     let contactData = await query.execute();
@@ -48,6 +48,8 @@ export default {
         { address1_stateorprovince: "IA" }
       )
       .orderBy("name asc");
+
+    accountData = await query.execute();
 
     console.log(
       `** Select from accounts where (or/and). results: ${accountData.length}`
