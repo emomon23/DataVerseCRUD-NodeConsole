@@ -6,8 +6,10 @@ To execute these CRUD samples against your own Dataverse, hosted in Azure, insta
 1: Clone this repo
 
 2: Open in VS Code, from terminal
-npm install axios
-npm install @azure/msal-node
+
+   npm install axios
+   
+   npm install @azure/msal-node
 
 3: Create a new .env file
 
