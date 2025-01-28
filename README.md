@@ -16,9 +16,13 @@ To execute these CRUD samples against your own Dataverse, hosted in Azure, insta
 4: Add the following to your .env file
 
 BASE_URL=
+
 CLIENT_ID=
+
 TENNENT_ID=
+
 CLIENT_SECRET=
+
 
 Set these values in the .env file as you register your app in portal.azure.com by following the steps in this youtube video
 STARTING AT MINUTE: 2:10
