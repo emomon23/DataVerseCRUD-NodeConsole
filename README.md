@@ -4,11 +4,13 @@ No user interface will be provided to a user to login when this app runs.
 To execute these CRUD samples against your own Dataverse, hosted in Azure, install Node and NPM
 
 1: Clone this repo
+
 2: Open in VS Code, from terminal
 npm install axios
 npm install @azure/msal-node
 
 3: Create a new .env file
+
 4: Add the following to your .env file
 
 BASE_URL=
